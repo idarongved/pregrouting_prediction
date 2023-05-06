@@ -1,0 +1,16 @@
+name: GBV_injections
+channels:
+- conda-forge
+- defaults
+dependencies:
+- python=3.10
+- joblib=1.1.0
+- matplotlib=3.5.1
+- numpy=1.23.1
+- pandas
+- openpyxl
+- pip
+- scikit-learn=1.1.1
+- spyder-kernels=2.1
+- pip:
+  - optuna==2.10.1

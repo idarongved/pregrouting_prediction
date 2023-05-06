@@ -1,0 +1,6 @@
+plots/*.png
+data/model_ready/*
+data/raw/*
+.vscode
+archive
+*.pyc

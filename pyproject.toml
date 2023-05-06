@@ -1,0 +1,31 @@
+[tool.poetry]
+name = "pregrouting-prediction"
+version = "0.1.0"
+description = "Training machine learning models to predict grouting volume and grouting in pre-excavation tunnel grouting for stopping water leakage"
+authors = ["Ida Rongved <ida.rongved@ngi.no>", "Georg Erharter <georg.erharter@ngi.no>", "Tom F. Hansen <tom.frode.hansen@ngi.no>"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+matplotlib = "^3.7.1"
+pandas = "^2.0.1"
+openpyxl = "^3.1.2"
+scikit-learn = "^1.2.2"
+optuna = "^3.1.1"
+joblib = "^1.2.0"
+seaborn = "^0.12.2"
+
+
+[tool.poetry.group.dev.dependencies]
+mypy = "^1.2.0"
+ruff = "^0.0.265"
+black = "^23.3.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+# export dependencies to a requirements.txt with:
+# poetry export -f requirements.txt --output requirements.txt --without-hashes
