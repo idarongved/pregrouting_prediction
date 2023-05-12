@@ -1,0 +1,11 @@
+00_raw_data/*.csv
+00_raw_data/*.xlsx
+00_raw_data/UDK01_grouting_water/*.csv
+01_processed_data
+02_results
+03_graphics
+xx_old
+__pycache__
+library.py 
+Main.py
+optimization_analyzer.py
