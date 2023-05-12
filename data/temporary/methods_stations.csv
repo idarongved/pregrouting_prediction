@@ -1,0 +1,122 @@
+,sourceId,elementId,unit
+0,SN27010:0,relative_humidity,percent
+1,SN27010:0,mean(dew_point_temperature P1D),degC
+2,SN27010:0,over_time(time_of_minimum_air_temperature P1M),Date
+3,SN27010:0,max(air_temperature PT1H),degC
+4,SN27010:0,max(air_temperature P6M),degC
+5,SN27010:0,max(wind_speed_of_gust PT1H),m/s
+6,SN27010:0,mean(air_temperature_anomaly P6M 1961_1990),degC
+7,SN27010:0,over_time(time_of_maximum_wind_speed P1M),Date
+8,SN27010:0,mean(surface_snow_thickness P1M),cm
+9,SN27010:0,max(wind_speed_of_gust P1D),m/s
+10,SN27010:0,accumulated(precipitation_amount),mm
+11,SN27010:0,accumulated(precipitation_amount),mm
+12,SN27010:0,mean(water_vapor_partial_pressure_in_air P1M),hPa
+13,SN27010:0,max(air_temperature PT12H),degC
+14,SN27010:0,mean(dew_point_temperature P1M),degC
+15,SN27010:0,max(relative_humidity P1M),percent
+16,SN27010:0,integral_of_deficit(mean(air_temperature P1D) P1Y 17.0),degree-day
+17,SN27010:0,mean(min(air_temperature P1D) P1M),degC
+18,SN27010:0,best_estimate_mean(air_temperature P1M),degC
+19,SN27010:0,mean(wind_speed P1D),m/s
+20,SN27010:0,min(relative_humidity P1M),percent
+21,SN27010:0,max(surface_snow_thickness P1M),cm
+22,SN27010:0,max(air_temperature P1Y),degC
+23,SN27010:0,sum(precipitation_amount_anomaly P6M 1991_2020),percent
+24,SN27010:0,min(surface_snow_thickness P1M),cm
+25,SN27010:0,max(wind_speed_of_gust PT10M),m/s
+26,SN27010:0,max(wind_speed_of_gust PT10M),m/s
+27,SN27010:0,best_estimate_sum(precipitation_amount P1M),mm
+28,SN27010:0,mean(air_temperature_anomaly P3M 1991_2020),degC
+29,SN27010:0,integral_of_excess(mean(air_temperature P1D) P1M 5.0),degree-day
+30,SN27010:0,mean(air_temperature P3M),degC
+31,SN27010:0,over_time(time_of_maximum_air_temperature P1M),Date
+32,SN27010:0,mean(air_temperature P1M),degC
+33,SN27010:0,mean(air_temperature P1M),degC
+34,SN27010:0,sum(duration_of_precipitation PT1H),minutes
+35,SN27010:0,max(sum(precipitation_amount P1D) P1M),mm
+36,SN27010:0,sum(precipitation_amount_anomaly P3M 1991_2020),percent
+37,SN27010:0,sum(precipitation_amount P6M),mm
+38,SN27010:0,number_of_days_gte(sum(precipitation_amount P1D) P1M 1.0),number of
+39,SN27010:0,surface_snow_thickness,cm
+40,SN27010:0,surface_snow_thickness,cm
+41,SN27010:0,best_estimate_sum(precipitation_amount P1Y),mm
+42,SN27010:0,sum(precipitation_amount P30D),mm
+43,SN27010:0,min(wind_speed_of_gust P1D),m/s
+44,SN27010:0,battery_voltage,volt
+45,SN27010:0,min(max(wind_speed PT1H) P1D),m/s
+46,SN27010:0,integral_of_excess(mean(air_temperature P1D) P1D 0.0),degree-day
+47,SN27010:0,over_time(time_of_maximum_wind_speed_of_gust PT1H),time
+48,SN27010:0,mean(max(air_temperature P1D) P1M),degC
+49,SN27010:0,min(wind_speed_of_gust P1M),m/s
+50,SN27010:0,sum(precipitation_amount_anomaly P1M 1991_2020),percent
+51,SN27010:0,min(wind_speed P1D),m/s
+52,SN27010:0,max_wind_speed(wind_from_direction PT1H),degrees
+53,SN27010:0,integral_of_deficit(mean(air_temperature P1D) P3M 17.0),degree-day
+54,SN27010:0,min(air_temperature P1D),degC
+55,SN27010:0,min(air_temperature P1D),degC
+56,SN27010:0,min(air_temperature P1Y),degC
+57,SN27010:0,mean(air_temperature_anomaly P1Y 1991_2020),degC
+58,SN27010:0,air_temperature,degC
+59,SN27010:0,max(air_temperature P1M),degC
+60,SN27010:0,mean(air_temperature P1Y),degC
+61,SN27010:0,min(air_temperature PT12H),degC
+62,SN27010:0,max(max(wind_speed P1D) P1M),m/s
+63,SN27010:0,mean(air_temperature P6M),degC
+64,SN27010:0,mean(air_temperature_anomaly P6M 1991_2020),degC
+65,SN27010:0,integral_of_excess(mean(air_temperature P1D) P1M 0.0),degree-day
+66,SN27010:0,integral_of_excess(mean(air_temperature P1D) P1D 5.0),degree-day
+67,SN27010:0,best_estimate_mean(air_temperature P1Y),degC
+68,SN27010:0,mean(max(wind_speed PT1H) P1D),m/s
+69,SN27010:0,sum(precipitation_amount P1D),mm
+70,SN27010:0,sum(precipitation_amount P1D),mm
+71,SN27010:0,wind_speed,m/s
+72,SN27010:0,wind_speed,m/s
+73,SN27010:0,over_time(time_of_maximum_wind_speed PT1H),time
+74,SN27010:0,max(wind_speed_of_gust P1M),m/s
+75,SN27010:0,mean(wind_speed_of_gust P1D),m/s
+76,SN27010:0,best_estimate_sum(precipitation_amount P3M),mm
+77,SN27010:0,wind_from_direction,degrees
+78,SN27010:0,wind_from_direction,degrees
+79,SN27010:0,best_estimate_sum(precipitation_amount P6M),mm
+80,SN27010:0,sum(precipitation_amount PT10M),mm
+81,SN27010:0,sum(precipitation_amount PT1H),mm
+82,SN27010:0,max(air_temperature P1D),degC
+83,SN27010:0,max(air_temperature P1D),degC
+84,SN27010:0,mean(wind_speed_of_gust P1M),m/s
+85,SN27010:0,mean(water_vapor_partial_pressure_in_air P1D),hPa
+86,SN27010:0,mean(max(wind_speed P1D) P1M),m/s
+87,SN27010:0,min(wind_speed P1M),m/s
+88,SN27010:0,mean(air_temperature P1D),degC
+89,SN27010:0,mean(air_temperature P1D),degC
+90,SN27010:0,sum(precipitation_amount P1Y),mm
+91,SN27010:0,mean(relative_humidity P1D),percent
+92,SN27010:0,sum(duration_of_precipitation PT10M),minutes
+93,SN27010:0,min(max(wind_speed P1D) P1M),m/s
+94,SN27010:0,max(wind_speed P1M),m/s
+95,SN27010:0,integral_of_deficit(mean(air_temperature P1D) P6M 17.0),degree-day
+96,SN27010:0,max(air_temperature P3M),degC
+97,SN27010:0,max(wind_speed P1D),m/s
+98,SN27010:0,min(air_temperature P6M),degC
+99,SN27010:0,min(relative_humidity P1D),percent
+100,SN27010:0,mean(wind_speed P1M),m/s
+101,SN27010:0,max(relative_humidity P1D),percent
+102,SN27010:0,max(max(wind_speed PT1H) P1D),m/s
+103,SN27010:0,max(wind_speed PT1H),m/s
+104,SN27010:0,integral_of_deficit(mean(air_temperature P1D) P1M 17.0),degree-day
+105,SN27010:0,sum(precipitation_amount P3M),mm
+106,SN27010:0,min(air_temperature P3M),degC
+107,SN27010:0,over_time(sum(time_of_maximum_precipitation_amount P1D) P1M),Date
+108,SN27010:0,mean(relative_humidity P1M),percent
+109,SN27010:0,sum(precipitation_amount_anomaly P1Y 1991_2020),percent
+110,SN27010:0,integral_of_deficit(mean(air_temperature P1D) P1D 17.0),degree-day
+111,SN27010:0,dew_point_temperature,degC
+112,SN27010:0,min(air_temperature P1M),degC
+113,SN27010:0,best_estimate_mean(air_temperature P3M),degC
+114,SN27010:0,min(air_temperature PT1H),degC
+115,SN27010:0,mean(air_temperature_anomaly P1Y 1961_1990),degC
+116,SN27010:0,mean(air_temperature_anomaly P1M 1991_2020),degC
+117,SN27010:0,sum(precipitation_amount P1M),mm
+118,SN27010:0,sum(precipitation_amount P1M),mm
+119,SN27010:0,sum(precipitation_amount PT12H),mm
+120,SN27010:0,mean(air_temperature_anomaly P3M 1961_1990),degC

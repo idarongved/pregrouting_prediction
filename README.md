@@ -5,3 +5,28 @@ The repository containts code for training machine learning models to be used fo
 A paper was published by Rognved, Hansen and Erharhter (2023) based on the results from the code in the repo.
 
 DOI: xxx
+
+## Setup
+
+Install and activate environment with:
+
+´´´bash
+poetry install
+poetry shell
+´´´
+
+## Run
+
+Run the steps in the machine learning project with:
+
+´´´bash
+python src/preprocessing.py
+python src/train_eval.py
+´´´
+
+## Contributors
+
+Ida Rognved: main development and paper writing
+Georg Erharter: development and paper writing
+Tom F. Hansen: development and paper writing
+
