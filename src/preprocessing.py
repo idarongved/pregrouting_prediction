@@ -204,7 +204,6 @@ plot_scatter(
     "TerrainHeight",
     Path("./plots/scatter_stop_pressure_terrainheight.png"),
 )
-# plot_scatter2(df, "Total grout take", "TerrainHeight", "Cement type", path_scatter_plot)
 
 # plotting correlation matrix of some selected numerical value
 plot_correlation_matrix(
@@ -212,6 +211,8 @@ plot_correlation_matrix(
     df,
     correlation_features,
     highlight_features=["Grouting time", "Total grout take"],
+    threshold_corr_value=0.1,
+    threshold_feature="Total grout take",
 )
 
 # plotting histograms of some chose feature values

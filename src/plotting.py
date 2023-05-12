@@ -91,10 +91,19 @@ def plot_correlation_matrix(
     features: list[str],
     figure_width: float = 6.3,
     highlight_features: list[str] = [],
+    threshold_corr_value: float = 0.1,
+    threshold_feature: str = "Total grout take",
 ) -> None:
-    corr = (data[features]).corr().round(2)
+    corr: pd.DataFrame = (data[features]).corr().round(2)
+    # Filter the correlation matrix based on the threshold
+    mask_features = abs(corr[threshold_feature]) > threshold_corr_value
+    corr = corr[mask_features]
+    corr.to_csv("test.csv")
+    corr = corr.loc[:, corr.index.tolist()]  # same num features vertical and horizontal
+
     mask = np.zeros_like(corr, dtype=bool)
     mask[np.triu_indices_from(mask)] = True
+
     fig, ax = plt.subplots(figsize=(2 * figure_width, 2 * figure_width))
     cmap = sns.color_palette("vlag", as_cmap=True)
     sns.heatmap(
@@ -108,9 +117,12 @@ def plot_correlation_matrix(
         linewidths=0.5,  # type: ignore
         cbar_kws={"shrink": 0.5},
         annot=True,
-        annot_kws={"size": 8},
+        annot_kws={"size": 10},
         ax=ax,
     )
+    # Set bigger fontsize for tick labels for this plot exclusively
+    ax.tick_params(axis='both', labelsize=12)
+
     if highlight_features:
         # Get the current tick labels
         tick_labels = ax.get_xticklabels()
@@ -126,7 +138,7 @@ def plot_correlation_matrix(
         for index in highlight_indices:
             tick_labels[index].set_color("red")
 
-    plt.savefig(savepath)
+    plt.savefig(savepath, bbox_inches="tight")
 
 
 def plot_scatters(
@@ -165,14 +177,13 @@ def plot_scatters(
     plt.savefig(savepath)
 
 
-
 def plot_scatter(
     data: pd.DataFrame,
     x_feature: str,
     y_feature: str,
     savepath: Path,
-    xlim: tuple[int, int]|None = None,
-    ylim: tuple[int, int]|None = None,
+    xlim: tuple[int, int] | None = None,
+    ylim: tuple[int, int] | None = None,
     figure_width: float = 3.15,
     marker_size: int = 40,
     alpha: float = 0.5,
@@ -195,6 +206,7 @@ def plot_scatter(
     ax.tick_params(axis="x", labelrotation=90)
     fig.tight_layout()
     plt.savefig(savepath)
+
 
 def plot_scatter2(
     data: pd.DataFrame,
@@ -227,7 +239,6 @@ def plot_scatter2(
     ax.legend(title=hue_feature, loc="upper left")
     fig.tight_layout()
     plt.savefig(savepath)
-
 
 
 def plot_feature_importances(

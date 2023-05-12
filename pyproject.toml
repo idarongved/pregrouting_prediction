@@ -31,5 +31,8 @@ ipdb = "^0.13.13"
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
+ [tool.ipdb]
+ context = 10
+
 # export dependencies to a requirements.txt with:
 # poetry export -f requirements.txt --output requirements.txt --without-hashes

@@ -233,6 +233,9 @@ barplot_features = [
 ]
 
 correlation_features = [
+    "Grouting time",
+    "Total grout take",
+    "Stop pressure",
     "temperature",
     "precipitation",
     "Grouting length",
@@ -240,9 +243,6 @@ correlation_features = [
     "Drilling inclination",
     "Number of holes",
     "Drilling meters",
-    "Grouting time",
-    "Total grout take",
-    "Stop pressure",
     "Prev. grouting time",
     "Prev. grout take",
     "Prev. stop pressure",
