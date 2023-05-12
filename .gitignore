@@ -13,6 +13,8 @@
 03_graphics/*.pdf
 03_graphics/Arkiv/*.jpg
 03_graphics/Arkiv/*.png
+03_graphics/*.db
+03_graphics/Arkiv/*.db
 
 xx_old
 __pycache__
