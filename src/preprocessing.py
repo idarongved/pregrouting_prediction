@@ -52,6 +52,15 @@ path_correlation_plot = Path(f"./plots/correlation_matrix_{MWD_DATA}.png")
 
 df_precipitation = pd.read_csv(path_precipitation_data, delimiter=",", parse_dates=[1])
 df_temperature = pd.read_csv(path_temperature_data, delimiter=",", parse_dates=[1])
+
+# Calculate cumulative values for the last 7 days, ie. one week
+df_precipitation["precip_week"] = (
+    df_precipitation["sum(precipitation_amount P1D)"].rolling(7, min_periods=1).sum()
+)
+df_temperature["temp_week"] = (
+    df_temperature["mean(air_temperature P1D)"].rolling(7, min_periods=1).mean()
+)
+
 df_climate = pd.merge(df_precipitation, df_temperature, on="date").drop(
     ["Unnamed: 0_x", "Unnamed: 0_y"], axis=1
 )
@@ -109,8 +118,9 @@ print_df_info(df_grouting, "After adding climate", info=True)
 # READ IN DATA CONTAINING GEOLOGY AND PREPROCESS
 ###############################################
 
-# if MWD_DATA == "blastholes":
-#     # ALTERNATIVE WITH PREVIOUS BLASTHOLES
+if MWD_DATA == "blastholes":
+    print("MWD-data with blastholes")
+
 df_geology = process_geology_blastholes_csv(path_geology)
 print_df_info(df_geology, "After all preprocessing", info=True)
 

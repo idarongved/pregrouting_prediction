@@ -12,13 +12,14 @@ from plotting_lib import (
     plot_prediction_error,
 )
 from rich import print as pprint
-from sklearn.compose import ColumnTransformer
+from sklearn.compose import ColumnTransformer, TransformedTargetRegressor
 from sklearn.dummy import DummyRegressor
 from sklearn.ensemble import (
     ExtraTreesRegressor,
     HistGradientBoostingRegressor,
     RandomForestRegressor,
 )
+from sklearn.linear_model import LinearRegression, Ridge
 from sklearn.metrics import r2_score
 from sklearn.model_selection import (
     ShuffleSplit,
@@ -31,6 +32,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import (
     MinMaxScaler,
     OneHotEncoder,
+    QuantileTransformer,
     StandardScaler,
     quantile_transform,
 )
@@ -48,7 +50,7 @@ from src.utility import (
 LABEL = "Total grout take"  # "Total grout take" "Grouting time"
 LABEL_TRANSFORM = "log"  # log, quantile, no
 TRAINING_FEATURES = train_features_chosen
-TEST_SIZE = 0.3
+TEST_SIZE = 0.2
 SPLITTING_SEED = 0
 MODEL_SEED = 0
 CV_SPLITS = 4
@@ -90,17 +92,20 @@ df = df.sample(
 features = df[TRAINING_FEATURES]
 labels = df[LABEL]
 
-# TODO: check out label transform. The labels have not a gaussian distribution: https://scikit-learn.org/stable/auto_examples/compose/plot_transformed_target.html#sphx-glr-auto-examples-compose-plot-transformed-target-py
+# check out label transform. The labels have not a gaussian distribution: https://scikit-learn.org/stable/auto_examples/compose/plot_transformed_target.html#sphx-glr-auto-examples-compose-plot-transformed-target-py
+# visualize transform
 if LABEL_TRANSFORM == "log":
-    labels = np.log1p(labels)
-    plt.hist(labels, bins=20)
+    plt.hist(np.log1p(labels), bins=20)
     plt.savefig("./data/temporary/label_transform_log.png")
 
 elif LABEL_TRANSFORM == "quantile":
-    labels = quantile_transform(
+    plt.hist(quantile_transform(
         labels.to_frame(), output_distribution="normal", n_quantiles=340
-    ).squeeze()
-    plt.hist(labels, bins=20)
+    ).squeeze(), bins=20)
+    plt.savefig("./data/temporary/label_transform_quantiile.png")
+
+elif LABEL_TRANSFORM == "squareroot":
+    plt.hist(np.sqrt(labels), bins=20)
     plt.savefig("./data/temporary/label_transform_quantiile.png")
 
 
@@ -122,6 +127,8 @@ clf_pipeline = Pipeline(
         (
             "classifier",
             ExtraTreesRegressor(verbose=False, n_jobs=-1, random_state=MODEL_SEED),
+            # Ridge(random_state=MODEL_SEED),
+            # LinearRegression(),
             # LGBMRegressor(verbose=0, n_jobs=-1, random_state=MODEL_SEED),
             # RandomForestRegressor(verbose=False, n_jobs=-1, random_state=MODEL_SEED),
             # HistGradientBoostingRegressor(verbose=False, random_state=MODEL_SEED),
@@ -148,7 +155,25 @@ if TRAIN_TEST_SPLIT:
     r2 = r2_score(y_val, y_predict)
 
     pprint(f"R2 from train-test-split. Testsize: {TEST_SIZE}. R2: {r2}")
-    exit()
+
+    if LABEL_TRANSFORM == "log":
+        # Transforming the target
+        clf_pipeline_trans = TransformedTargetRegressor(
+            regressor=clf_pipeline,
+            func=np.sqrt,
+            inverse_func=np.square)
+        # clf_pipeline_trans = TransformedTargetRegressor(
+        #     regressor=clf_pipeline,
+        #     transformer=QuantileTransformer(
+        #         output_distribution="normal", n_quantiles=235))
+
+        fitted_clf = clf_pipeline_trans.fit(x_train, y_train)
+        y_predict = fitted_clf.predict(x_val)
+
+        r2 = r2_score(y_val, y_predict)
+
+        pprint(f"R2 transformed from train-test-split. Testsize: {TEST_SIZE}. R2: {r2}")
+        exit()
 
 # TRAIN A REGRESSION MODEL USING CROSS VALIDATION
 ########################################################
@@ -175,6 +200,7 @@ scores = cross_validate(
     return_estimator=True,
 )
 trained_clf = scores["estimator"][1]["classifier"]  # choosing regressor from fold 2
+# trained_clf = scores["estimator"][1]  # choosing regressor from fold 2
 r2 = scores["test_r2"]
 mse = scores["test_neg_mean_squared_error"]
 rmse = scores["test_neg_root_mean_squared_error"]
@@ -210,58 +236,27 @@ df_error = pd.DataFrame(
 )
 
 if LABEL == "Total grout take":
-    # plot_pred_error(
-    #     df_error,
-    #     type(clf_pipeline["classifier"]).__name__,  # type: ignore
-    #     LABEL,
-    #     path_result_scatter,
-    #     xlim=(0, 70000),
-    #     ylim=(0, 70000),
-    #     tick_density = 10000,
-    #     figure_width=6.3,
-    # )
-
-    # plot_pred_error(
-    #     df_error,
-    #     type(clf_pipeline["classifier"]).__name__,  # type: ignore
-    #     LABEL,
-    #     path_result_scatter,
-    #     xlim=(-3, 3),
-    #     ylim=(-3, 3),
-    #     tick_density=2,
-    #     figure_width=6.3,
-    # )
-
+    print("Plotting pred error grout take")
     plot_pred_error(
         df_error,
         type(clf_pipeline["classifier"]).__name__,  # type: ignore
         LABEL,
         path_result_scatter,
-        xlim=(7, 12),
-        ylim=(7, 12),
-        tick_density=5,
+        xlim=(0, 70000),
+        ylim=(0, 70000),
+        tick_density = 10000,
         figure_width=6.3,
     )
 
-if LABEL == "Grouting time":
-    # plot_pred_error(
-    #     df_error,
-    #     type(clf_pipeline["classifier"]).__name__,  # type: ignore
-    #     LABEL,
-    #     path_result_scatter,
-    #     xlim=(0, 40),
-    #     ylim=(0, 30),
-    #     tick_density=5,
-    #     figure_width=6.3,
-    # )
 
+if LABEL == "Grouting time":
     plot_pred_error(
         df_error,
         type(clf_pipeline["classifier"]).__name__,  # type: ignore
         LABEL,
         path_result_scatter,
-        xlim=(1, 4),
-        ylim=(1, 4),
-        tick_density=1,
+        xlim=(0, 40),
+        ylim=(0, 30),
+        tick_density=5,
         figure_width=6.3,
     )

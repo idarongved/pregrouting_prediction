@@ -197,6 +197,8 @@ train_features_chosen = [
     # "Date pregrouting",
     # "temperature",
     # "precipitation",
+    # "temp_week",
+    "precip_week",
     "Grouting length",
     "Number of holes",
     "Drilling meters",
@@ -474,9 +476,6 @@ def align_geology_for_longholes(
     #only replace MWD-data. All other data is ok in df_total
     grouped_df = grouped_df[MWD]
     df_total = df_total.drop(MWD, axis=1)
-
-    import ipdb
-    ipdb.set_trace()
 
     # 2. Replace old blasting MWD with longhole MWD
     df = pd.merge(
