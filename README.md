@@ -8,19 +8,65 @@ DOI: xxx
 
 ## Setup
 
-Install and activate environment with:
+Install and activate environment using `Poetry` or `Conda`:
+
+With:
 
 ```bash
 poetry install
 poetry shell
 ```
 
+Or:
+
+```bash
+conda env create --name pregrouting --file requirements.txt
+conda activate pregrouting
+```
+
+
 ## Run
 
 Run the steps in the machine learning project with:
 
+### Initial steps
+
+To retrieve data about precipitation and temperature:
+
+```bash
+python src/frost_data.py
+```
+
+To preprocess, build and combine dataset:
+
 ```bash
 python src/preprocessing.py
+```
+
+To remove outliers in dataset:
+
+```bash
+python src/outlier_removal.py
+```
+
+
+### ML training
+
+To find the right features to use in trainig (not implemented)
+
+```bash
+python src/feature_selection.py
+```
+
+To optimize hyperparameters (not implemented)
+
+```bash
+python src/hyperparameter_tuning.py
+```
+
+Final run of training with optimized parameters:
+
+```bash
 python src/train_eval.py
 ```
 

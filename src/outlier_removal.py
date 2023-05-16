@@ -9,7 +9,7 @@ from pathlib import Path
 
 # TODO: check out other methods in pyod. Ecod etc. https://towardsdatascience.com/how-to-perform-multivariate-outlier-detection-in-python-pyod-for-machine-learning-b0a9c557a21c
 
-path_model_ready_data = Path("./data/model_ready/model_ready_dataset.xlsx")
+path_model_ready_data = Path("./data/model_ready/model_ready_dataset_blasting.xlsx")
 LABEL = "Total grout take"  # "Total grout take" "Grouting time"
 TRAINING_FEATURES = train_features_chosen
 
@@ -23,6 +23,8 @@ features = df[TRAINING_FEATURES]
 features = pd.get_dummies(features) #one-hot-encode categorical variables
 labels = df[LABEL]
 
+# WITH LOF
+########################################
 # Initialize
 lof = LOF(n_neighbors=30).fit(features)
 
@@ -38,11 +40,12 @@ outliers_X_probs = features[is_outlier]
 
 # Count up the outliers
 num_outliers = len(outliers_X_probs)
-print(f"The number of outliers: {num_outliers}")
+print(f"The number of outliers with LOF: {num_outliers}")
 print(f"Percentage of outliers: {num_outliers / len(features):.4f}")
 
 
-# with isolation forest
+# WITH ISOLATION FOREST
+########################################
 iforest = IForest(n_estimators=500).fit(features)
 
 probs = iforest.predict_proba(features)
@@ -57,7 +60,7 @@ outliers_X_probs = features[is_outlier]
 
 # Count up the outliers
 num_outliers = len(outliers_X_probs)
-print(f"The number of outliers: {num_outliers}")
+print(f"The number of outliers with Isolation forest: {num_outliers}")
 print(f"Percentage of outliers: {num_outliers / len(features):.4f}")
 
 # Create a mask that returns True if probs are below the threshold

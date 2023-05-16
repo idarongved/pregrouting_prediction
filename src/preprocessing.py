@@ -5,35 +5,46 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import LabelEncoder
-
-from src.plotting import (
+from plotting_lib import (
     plot_barplots,
     plot_correlation_matrix,
     plot_histograms,
     plot_scatter,
-    plot_scatter2,
 )
+from sklearn.preprocessing import LabelEncoder
+
 from src.utility import (
+    align_geology_for_longholes,
     barplot_features,
     correlation_features,
     hist_features,
     print_df_info,
+    process_geology_blastholes_csv,
+    process_geology_longholes,
 )
 
 # CONSTANTS
 ###############################################
-MERGE_TOLERANCE = 1
+MERGE_TOLERANCE_GEOLOGY_BLASTHOLES = 1
+MWD_DATA = "longholes"  # longholes, blastholes - choose which MWD-dataset to use
 
-path_model_ready_data = Path("./data/model_ready/model_ready_dataset.xlsx")
+# data paths
 path_geology = Path("./data/raw/UDK01_mwd_Q_rocktype.csv")
+path_geology_longholes = Path("./data/raw/UDK01_mwd_langhull.csv")
 path_grouting = Path("./data/raw/SikrReport32003_0_980.csv")
-path_feature_histograms = Path("./plots/feature_histograms.png")
-path_feature_barplots = Path("./plots/feature_barplots.png")
-path_correlation_plot = Path("./plots/correlation_matrix.png")
 path_temperature_data = Path("./data/raw/mean_daily_temperature.csv")
 path_precipitation_data = Path("./data/raw/daily_precipitation.csv")
-# path_scatter_plot = Path("./plots/scatter_plot.png")
+path_model_ready_data_blasting = Path(
+    "./data/model_ready/model_ready_dataset_blasting.xlsx"
+)
+path_model_ready_data_longholes = Path(
+    "./data/model_ready/model_ready_dataset_longholes.xlsx"
+)
+
+# plot paths
+path_feature_histograms = Path(f"./plots/feature_histograms_{MWD_DATA}.png")
+path_feature_barplots = Path(f"./plots/feature_barplots_{MWD_DATA}.png")
+path_correlation_plot = Path(f"./plots/correlation_matrix_{MWD_DATA}.png")
 
 
 # READ IN DATA WITH TEMPERATURE AND PRECIPITATION AND PREPROCESS
@@ -52,35 +63,6 @@ print(df_climate.head())
 df_climate.plot()
 plt.savefig("./plots/climate.png")
 plt.close()
-
-
-# READ IN DATA CONTAINING GEOLOGY AND PREPROCESS
-###############################################
-df_geology = pd.read_csv(path_geology, delimiter=";")
-print_df_info(df_geology, "After read")
-df_geology = df_geology.drop(["Tunnel"], axis=1)
-df_geology = df_geology.sort_values("PegEnd")
-df_geology["PegEnd"] = df_geology["PegEnd"].round(1)
-
-
-# change types of features
-df_geology["Date"] = pd.to_datetime(df_geology["Date"])
-cols_to_convert = [
-    "Q",
-    "Jr",
-    "Ja",
-    "Jw",
-    "Jn",
-    "ContourWidth",
-    "SRF",
-]
-for col in cols_to_convert:
-    df_geology[col] = df_geology[col].apply(lambda x: float(str(x).replace(",", ".")))
-
-
-# feature engineering
-df_geology["logQ"] = np.log(df_geology["Q"])
-print_df_info(df_geology, "After all preprocessing", info=True)
 
 
 # READ IN DATA CONTAINING GROUTING DATA AND PREPROCESS
@@ -110,7 +92,8 @@ for col in cols_to_convert:
 # feature engineering
 df_grouting["Distance last station"] = df_grouting["Pel"] - df_grouting["Pel"].shift(1)
 
-df_grouting = df_grouting.dropna().reset_index()
+df_grouting = df_grouting.dropna().reset_index(drop=True)
+df_grouting["Pel"] = df_grouting["Pel"].round(0).astype("int")
 
 df_grouting = df_grouting.set_index("date")
 
@@ -118,25 +101,40 @@ print_df_info(df_grouting, "After all preprocessing", info=True)
 
 df_grouting = pd.merge(df_grouting, df_climate, on="date")
 
+df_grouting = df_grouting.reset_index()
 
 print_df_info(df_grouting, "After adding climate", info=True)
 
-#TODO: check out label transform. The labels have not a gaussian distribution: https://scikit-learn.org/stable/auto_examples/compose/plot_transformed_target.html#sphx-glr-auto-examples-compose-plot-transformed-target-py
 
-# OPERATIONS ON TOTAL DATASET
+# READ IN DATA CONTAINING GEOLOGY AND PREPROCESS
 ###############################################
 
-# merge datasets
+# if MWD_DATA == "blastholes":
+#     # ALTERNATIVE WITH PREVIOUS BLASTHOLES
+df_geology = process_geology_blastholes_csv(path_geology)
+print_df_info(df_geology, "After all preprocessing", info=True)
+
 df = pd.merge_asof(
     left=df_grouting.sort_values("Pel"),
     right=df_geology,
     left_on="Pel",
     right_on="PegEnd",
     direction="nearest",
-    tolerance=MERGE_TOLERANCE,
+    tolerance=MERGE_TOLERANCE_GEOLOGY_BLASTHOLES,
 )
+if MWD_DATA == "longholes":
+    # ALTERNATIVE WITH DATA FROM ALL GROUTING HOLES
+    df_geology = process_geology_longholes(path_geology_longholes)
+    print_df_info(df_geology, "After all preprocessing", info=True)
 
-print_df_info(df, "After mergasof")
+    df = align_geology_for_longholes(df_geology, df_grouting, df)
+else:
+    raise ValueError("MWD-data is implemented for longholes and blastholes")
+
+print_df_info(df, "After merging geology and grouting", info=True)
+
+# OPERATIONS ON TOTAL DATASET
+###############################################
 
 # renaming and make all norwegian feature names english
 df = df.rename(
@@ -152,7 +150,7 @@ df = df.rename(
         "Rock": "Rocktype",
         "ContourWidth": "Tunnel width",
         "Date": "Date mapping",
-        "Dato": "Date pregrouting",
+        "date": "Date pregrouting",
         "Skjermlengde [m]": "Grouting length",
         "Stikning [m]": "Drilling inclination",
         "Bormeter [m]": "Drilling meters",
@@ -162,7 +160,7 @@ df = df.rename(
 )
 
 # shift some features due to timing of data for prediction
-# NOTE: from merging process, all data in df_geology is already shifted 1 round behind
+# NOTE: from merging process (or longholes function), all data in df_geology is already shifted 1 round behind
 # the grouting face
 df[["Prev. grouting time", "Prev. grout take", "Prev. stop pressure"]] = df[
     ["Grouting time", "Total grout take", "Stop pressure"]
@@ -175,20 +173,26 @@ for person in ["Control engineer grouting", "Mapping geologist"]:
     df[person] = df[person].astype(str).apply(lambda x: f"Engineer_{x}")
 
 # cleaning up
-df = df.drop_duplicates()
-df = df.dropna().reset_index(drop=True)
+# to avoid deleting rows with the same profile but new fan at same face
+df = df.drop_duplicates(subset=["Pel", "Grouting time"])
+df = df.dropna()
+df = df.sort_values("Pel").reset_index(drop=True)
 
 print_df_info(df, "After all preprocessing on whole dataset", info=True)
 
 
 # save excel-file
-df.to_excel(path_model_ready_data)
+if MWD_DATA == "blastholes":
+    df.to_excel(path_model_ready_data_blasting)
+elif MWD_DATA == "longholes":
+    df.to_excel(path_model_ready_data_longholes)
 
 
 # VISUALIZING DATASET
 ####################################################
 
 
+# scatter plots of variables with high correlation to target
 plot_scatter(
     df,
     "Total grout take",
