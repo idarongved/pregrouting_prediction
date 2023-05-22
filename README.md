@@ -72,7 +72,7 @@ python src/train_eval.py
 
 ## Contributors
 
-Ida Rognved: development and paper writing
+Ida Rongved: development and paper writing
 
 Georg Erharter: development and paper writing
 
