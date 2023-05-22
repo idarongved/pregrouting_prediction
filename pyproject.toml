@@ -20,6 +20,8 @@ pyod = "^1.0.9"
 rich = "^13.3.5"
 requests = "^2.30.0"
 lightgbm = "^3.3.5"
+featurewiz = "^0.3.1"
+yellowbrick = "^1.5"
 
 
 [tool.poetry.group.dev.dependencies]

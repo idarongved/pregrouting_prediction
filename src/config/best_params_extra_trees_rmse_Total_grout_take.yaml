@@ -1,0 +1,7 @@
+bootstrap: false
+criterion: poisson
+max_depth: 64
+max_features: null
+min_samples_leaf: 2
+min_samples_split: 12
+n_estimators: 700

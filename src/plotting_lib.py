@@ -2,6 +2,7 @@
 
 
 from pathlib import Path
+from typing import List, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,6 +10,8 @@ import pandas as pd
 import seaborn as sns
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import PredictionErrorDisplay, mean_squared_error, r2_score
+from sklearn.model_selection import cross_val_predict
+from sklearn.pipeline import Pipeline
 
 plt.style.use("./src/config/figures_styles.mplstyle")
 
@@ -85,6 +88,60 @@ def plot_barplots(df: pd.DataFrame, features: list[str], savepath: Path) -> None
     plt.savefig(savepath)
 
 
+def plot_features(
+    df: pd.DataFrame,
+    num_features: list[str],
+    cat_features: list[str],
+    savepath: Path,
+    binsize: int = 10,
+) -> None:
+    """
+    Plots histograms for numerical features and bar plots for categorical features.
+
+    Parameters:
+    - df (pd.DataFrame): The input DataFrame.
+    - num_features (list[str]): The list of numerical feature names to plot.
+    - cat_features (list[str]): The list of categorical feature names to plot.
+    - savepath (Path): The path to save the plot.
+    - binsize (int): The number of bins for the histograms. Default is 10.
+
+    Returns:
+    - None
+    """
+    total_features = len(num_features) + len(cat_features)
+    ncols = 4 if total_features > 4 else total_features
+    nrows = int(np.ceil(total_features / ncols))
+
+    fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(15, 3 * nrows))
+    axs = axs.flatten()
+
+    # Plotting numerical features
+    for i, feature in enumerate(num_features):
+        axs[i].hist(
+            df[feature], bins=binsize, alpha=0.5, edgecolor="black", color="lightgrey"
+        )
+        axs[i].set_title(feature, fontsize=15)
+        axs[i].tick_params(labelsize=15)
+        axs[i].grid(True, axis="y", alpha=0.5)
+
+    # Plotting categorical features
+    for i, feature in enumerate(cat_features, start=len(num_features)):
+        values = df[feature].value_counts()
+        axs[i].bar(values.index, values.values, color="lightgrey", edgecolor="black")
+        axs[i].set_title(feature, fontsize=15)
+        axs[i].tick_params(labelsize=15)
+        axs[i].tick_params(axis="x", labelrotation=90)
+        axs[i].spines["right"].set_visible(False)
+        axs[i].spines["top"].set_visible(False)
+        axs[i].grid(False)
+
+    for ax in axs[total_features:]:
+        ax.set_visible(False)
+
+    plt.tight_layout()
+    plt.savefig(savepath)
+
+
 def plot_correlation_matrix(
     savepath: Path,
     data: pd.DataFrame,
@@ -121,7 +178,7 @@ def plot_correlation_matrix(
         ax=ax,
     )
     # Set bigger fontsize for tick labels for this plot exclusively
-    ax.tick_params(axis='both', labelsize=12)
+    ax.tick_params(axis="both", labelsize=12)
 
     if highlight_features:
         # Get the current tick labels
@@ -188,7 +245,6 @@ def plot_scatter(
     marker_size: int = 40,
     alpha: float = 0.5,
 ) -> None:
-
     fig, ax = plt.subplots(figsize=(figure_width, figure_width))
     sns.regplot(
         data=data,
@@ -209,39 +265,6 @@ def plot_scatter(
     plt.savefig(savepath)
 
 
-def plot_scatter2(
-    data: pd.DataFrame,
-    x_feature: str,
-    y_feature: str,
-    hue_feature: str,
-    savepath: Path,
-    figure_width: float = 3.15,
-    marker_size: int = 40,
-    alpha: float = 0.5,
-) -> None:
-    sns.set_style("whitegrid")
-    fig = sns.lmplot(
-        data=data,
-        x=x_feature,
-        y=y_feature,
-        hue=hue_feature,
-        scatter_kws={"s": marker_size, "alpha": alpha},
-        # markers=["o", "s", "D"],
-        height=figure_width,
-        aspect=1.5,
-        legend=False,
-    )
-    ax = fig.axes[0, 0]
-    ax.set_xlim(xmin=0, xmax=70000)
-    ax.set_ylim(ymin=0, ymax=250)
-    ax.set_xlabel(x_feature)
-    ax.set_ylabel(y_feature)
-    ax.tick_params(axis="x", labelrotation=90)
-    ax.legend(title=hue_feature, loc="upper left")
-    fig.tight_layout()
-    plt.savefig(savepath)
-
-
 def plot_feature_importances(
     save_path: Path,
     model: RandomForestRegressor,
@@ -255,12 +278,12 @@ def plot_feature_importances(
     std = np.std([tree.feature_importances_ for tree in model.estimators_], axis=0)[
         0:num_bars
     ]
-    fig, ax = plt.subplots(figsize=(2 * figure_width, 1.7 * figure_width))
+    fig, ax = plt.subplots(figsize=(2 * figure_width, 1 * figure_width))
     forest_importances = pd.Series(importances, index=feature_names).sort_values(
         ascending=False
     )
     forest_importances = forest_importances[0:num_bars]  # constrain the bars
-    forest_importances.plot(kind="bar", yerr=std, ax=ax, color="#999999")  # 8b9dc3")
+    forest_importances.plot(kind="bar", yerr=std, ax=ax, color="Gray")  # 8b9dc3")
     ax.set_xticklabels(
         forest_importances.index,
         rotation=45,
@@ -276,11 +299,25 @@ def plot_feature_importances(
 
 
 def plot_pred_error(
-    df, model_name, label, savepath, xlim=(0, 70000), ylim=(0, 70000), tick_density=10000, figure_width=3.15
+    df,
+    model_name,
+    label,
+    savepath,
+    xlim=(0, 70000),
+    ylim=(0, 70000),
+    tick_density=10000,
+    figure_width=3.15,
 ):
     fig, ax = plt.subplots(figsize=(figure_width, figure_width))
 
-    sns.scatterplot(data=df, x="Ground truth", y="Prediction", hue="Cement type", ax=ax)
+    sns.scatterplot(
+        data=df,
+        x="Ground truth",
+        y="Prediction",
+        hue="Cement type",
+        ax=ax,
+        palette={"Industrisement": "gray", "Mikrosement": "#aa3a3d"},
+    )
     sns.lineplot(
         x=[xlim[0], xlim[1]],
         y=[ylim[0], ylim[1]],
@@ -309,13 +346,168 @@ def plot_pred_error(
     fig.savefig(savepath)
 
 
+def make_predictions(
+    clf_pipelines: List[Pipeline],
+    features: pd.DataFrame,
+    features_encoded: pd.DataFrame,
+    labels: pd.Series,
+    cv_splits: int,
+) -> Tuple[List[pd.DataFrame], List[str]]:
+    dfs = []
+    model_names = []
+
+    for clf in clf_pipelines:
+        y_predicted = cross_val_predict(clf, features_encoded, labels, cv=cv_splits)
+
+        binary_coloring = features["Cement type"]
+
+        df_error = pd.DataFrame(
+            {
+                "Prediction": y_predicted,
+                "Ground truth": labels,
+                "Cement type": binary_coloring,
+            }
+        )
+
+        dfs.append(df_error)
+
+        # get the name of the last step of the pipeline if it's named
+        if isinstance(clf, Pipeline):
+            model_name = type(clf["classifier"]).__name__
+        else:
+            model_name = clf.__class__.__name__
+
+        model_names.append(model_name)
+
+    return dfs, model_names
+
+
+def plot_pred_error_models(
+    dfs: list[pd.DataFrame],
+    model_names: list[str],
+    label: str,
+    savepath: Path,
+    xlim=(0, 70000),
+    ylim=(0, 70000),
+    tick_density=10000,
+    figure_width=3.15,
+) -> None:
+    fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(figure_width * 3, figure_width))
+
+    for ax, df, model_name in zip(axes, dfs, model_names):
+        sns.scatterplot(
+            data=df,
+            x="Ground truth",
+            y="Prediction",
+            hue="Cement type",
+            ax=ax,
+            palette={"Industrisement": "gray", "Mikrosement": "#aa3a3d"},
+        )
+        sns.lineplot(
+            x=[xlim[0], xlim[1]],
+            y=[ylim[0], ylim[1]],
+            color="black",
+            linestyle="--",
+            ax=ax,
+        )
+        if xlim:
+            ax.set_xlim(xlim[0], xlim[1])
+            ax.set_xticks(np.arange(xlim[0], xlim[1], tick_density))
+        if ylim:
+            ax.set_ylim(ylim[0], ylim[1])
+            ax.set_yticks(np.arange(ylim[0], ylim[1], tick_density))
+
+        y_true = df["Ground truth"]
+        y_pred = df["Prediction"]
+
+        r2 = r2_score(y_true, y_pred)
+        rmse = mean_squared_error(y_true, y_pred, squared=False)
+        ax.set_title(
+            f"{model_name} predicting: {label}. \nScores. R2: {r2:.2f}. RMSE: {rmse:.2f}"
+        )
+
+        ax.grid(True, alpha=0.5)
+
+    fig.savefig(savepath)
+
+
+# Use this palette in the previous function:
+def plot_time_series(
+    df,
+    temp_cols,
+    precip_cols,
+    savepath,
+    figure_width=3.15,
+):
+    # Get the 'vlag' color palette
+    color_palette = sns.color_palette("vlag", 4)
+    # You may want to convert this palette to a list of RGB tuples for matplotlib:
+    # color_palette = color_palette.as_hex()
+
+    fig, ax1 = plt.subplots(figsize=(figure_width * 2, figure_width))
+
+    # Create a color iterator
+    color_iter = iter(color_palette)
+
+    # Plot temperature data
+    for col in temp_cols:
+        ax1.plot(df.index, df[col], color=next(color_iter), label=col, linewidth=0.7)
+
+    ax1.set_xlabel("Date")
+    ax1.set_ylabel("Temperature (deg. C)")
+    ax1.legend(loc="upper left")
+
+    # Create a second y-axis for precipitation data
+    ax2 = ax1.twinx()
+
+    # Plot precipitation data
+    for col in precip_cols:
+        ax2.plot(df.index, df[col], color=next(color_iter), label=col, linewidth=0.7)
+
+    ax2.set_ylabel("Precipitation (mm)")
+    ax2.legend(loc="upper right")
+
+    fig.tight_layout()  # otherwise the right y-label is slightly clipped
+    plt.savefig(savepath)
+
+
+def plot_grouting_data(
+    data: pd.DataFrame,
+    x_name: str,
+    y_names: list[str],
+    savepath: Path,
+    figure_width=3.15,
+) -> None:
+    data = data.loc[data[x_name] < 56000, :]
+
+    fig, axes = plt.subplots(
+        figsize=(2 * figure_width, figure_width), nrows=3, ncols=1, sharex=True
+    )
+
+    for ax, feature in zip(axes, y_names):
+        ax.plot(data[x_name], data[feature], color="Gray")
+        ax.scatter(data[x_name], data[feature], color="#aa3a3d", s=1.5)
+        # ax.stem(data[x_name], data[feature])
+        ax.set_ylabel(feature, rotation=45)
+        ax.grid(visible=True)
+
+    plt.xlabel("Profile number")
+    plt.tight_layout()
+    plt.savefig(savepath)
+
+
+# Legacy functions
+#################################################################################
+
+
 def plot_prediction_error(
     y_pred, y_true, savepath, binary_feature, xlim=None, ylim=None, figure_width=3.15
 ):
     """
     NOTE: OLD SCIKIT LEARN BASED VERSION
 
-    Generate a prediction error plot from predicted values and true values and save it to a file.
+    Generate a prediction error plot from predicted values and true values and save it
+    to a file.
 
     Parameters
     ----------
@@ -363,3 +555,36 @@ def plot_prediction_error(
     # handles, labels = pred_disp.ax_.collections[0].legend_elements()
     # ax.legend(handles, labels, loc="best")
     fig.savefig(savepath)
+
+
+def plot_scatter2(
+    data: pd.DataFrame,
+    x_feature: str,
+    y_feature: str,
+    hue_feature: str,
+    savepath: Path,
+    figure_width: float = 3.15,
+    marker_size: int = 40,
+    alpha: float = 0.5,
+) -> None:
+    sns.set_style("whitegrid")
+    fig = sns.lmplot(
+        data=data,
+        x=x_feature,
+        y=y_feature,
+        hue=hue_feature,
+        scatter_kws={"s": marker_size, "alpha": alpha},
+        # markers=["o", "s", "D"],
+        height=figure_width,
+        aspect=1.5,
+        legend=False,
+    )
+    ax = fig.axes[0, 0]
+    ax.set_xlim(xmin=0, xmax=70000)
+    ax.set_ylim(ymin=0, ymax=250)
+    ax.set_xlabel(x_feature)
+    ax.set_ylabel(y_feature)
+    ax.tick_params(axis="x", labelrotation=90)
+    ax.legend(title=hue_feature, loc="upper left")
+    fig.tight_layout()
+    plt.savefig(savepath)

@@ -7,6 +7,33 @@ import pandas as pd
 from rich import print as pprint
 from sklearn.preprocessing import OneHotEncoder
 
+# from auto feature selection with featurewiz
+auto_features = [
+    "Prev. grout take",
+    "Number of holes",
+    "RotaPressNormStandardDeviation",
+    "precip_week",
+    "temperature",
+    "WaterFlowNormMean",
+    "PenetrNormStandardDeviation",
+    "Control engineer grouting",
+    "HammerPressNormSkewness",
+    "Ja",
+    "Rocktype",
+    "Jn",
+    "Distance last station",
+    "PenetrNormKurtosis",
+    "Prev. stop pressure",
+    "HammerPressNormMean",
+    "FeedPressNormMean",
+    "RotaPressRMSMean",
+    "SRF",
+    "Drilling inclination",
+    "Mapping geologist",
+    "Q-class",
+    "Cement type",
+]
+
 MWD = [
     "PegStart",
     "PenetrNormMean",
@@ -52,21 +79,24 @@ MWD = [
 ]
 
 all_features = [
-    "index",
+    "temperature",
+    "precipitation",
+    "temp_week",
+    "precip_week",
     "Control engineer grouting",
-    "Date pregrouting",
-    "Pel",
+    # "Date pregrouting",
+    # "Pel",
     "Distance last station",
     "Grouting length",
     "Drilling inclination",
     "Number of holes",
     "Drilling meters",
-    "Grouting time",
+    # "Grouting time",
     "Cement type",
-    "Total grout take",
-    "Stop pressure",
-    "PegStart",
-    "PegEnd",
+    # "Total grout take",
+    # "Stop pressure",
+    # "PegStart",
+    # "PegEnd",
     "PenetrNormMean",
     "PenetrNormVariance",
     "PenetrNormStandardDeviation",
@@ -114,11 +144,11 @@ all_features = [
     "Jr",
     "Jw",
     "Jn",
-    "JnMult",
+    # "JnMult",
     "Ja",
     "SRF",
     "Mapping geologist",
-    "Date mapping",
+    # "Date mapping",
     "TerrainHeight",
     "Tunnel width",
     "logQ",
@@ -128,6 +158,12 @@ all_features = [
 ]
 
 train_features_max = [
+    "Total grout take",
+    "temperature",
+    "precipitation",
+    "temp_week",
+    "precip_week",
+    "Mapping geologist",
     "Control engineer grouting",
     "Grouting length",
     "Distance last station",
@@ -230,6 +266,7 @@ train_features_chosen = [
     "Prev. stop pressure",
 ]
 
+
 train_features_small = [
     "Prev. grout take",
     "TerrainHeight",
@@ -261,7 +298,7 @@ train_features_no_previous = [
 
 hist_features = [
     "Grouting length",
-    "Drilling inclination",
+    # "Drilling inclination",
     "Number of holes",
     "Drilling meters",
     "Grouting time",
@@ -270,7 +307,12 @@ hist_features = [
     "Q",
     # "logQ",
     "TerrainHeight",
-    "Distance last station",
+    # "Distance last station",
+    "RotaPressNormMean",
+    "HammerPressNormMean",
+    "PenetrNormMean",
+    "RQD",
+    # "WaterFlowNormMean",
 ]
 
 barplot_features = [
@@ -278,7 +320,7 @@ barplot_features = [
     "Cement type",
     "Q-class",
     "Rocktype",
-    "Mapping geologist",
+    # "Mapping geologist",
 ]
 
 correlation_features = [
@@ -466,14 +508,12 @@ def align_geology_for_longholes(
             length_fan = int(row["Skjermlengde [m]"])
             group_mean = df.loc[idx : idx + length_fan, MWD[1:]].mean().round(3)
             group_mean["PegStart"] = df.loc[idx, "PegStart"]
-            grouped_df = pd.concat(
-                [grouped_df, group_mean], ignore_index=True, axis=1
-            )
+            grouped_df = pd.concat([grouped_df, group_mean], ignore_index=True, axis=1)
 
     grouped_df = grouped_df.transpose()
     grouped_df["PegStart"] = grouped_df["PegStart"].round(0).astype(int)
 
-    #only replace MWD-data. All other data is ok in df_total
+    # only replace MWD-data. All other data is ok in df_total
     grouped_df = grouped_df[MWD]
     df_total = df_total.drop(MWD, axis=1)
 

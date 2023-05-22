@@ -2,17 +2,20 @@
 
 from pathlib import Path
 
+# from yellowbrick.features import ParallelCoordinates
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 from plotting_lib import (
     plot_barplots,
     plot_correlation_matrix,
+    plot_features,
     plot_histograms,
     plot_scatter,
+    plot_time_series,
 )
 from sklearn.preprocessing import LabelEncoder
 
+from src.plotting_lib import plot_grouting_data
 from src.utility import (
     align_geology_for_longholes,
     barplot_features,
@@ -21,6 +24,7 @@ from src.utility import (
     print_df_info,
     process_geology_blastholes_csv,
     process_geology_longholes,
+    train_features_chosen,
 )
 
 # CONSTANTS
@@ -44,6 +48,7 @@ path_model_ready_data_longholes = Path(
 # plot paths
 path_feature_histograms = Path(f"./plots/feature_histograms_{MWD_DATA}.png")
 path_feature_barplots = Path(f"./plots/feature_barplots_{MWD_DATA}.png")
+path_features = Path(f"./plots/features_{MWD_DATA}.png")
 path_correlation_plot = Path(f"./plots/correlation_matrix_{MWD_DATA}.png")
 
 
@@ -69,9 +74,22 @@ df_climate = df_climate.set_index("date")
 print(df_climate.info())
 print(df_climate.head())
 
-df_climate.plot()
-plt.savefig("./plots/climate.png")
-plt.close()
+
+df_climate_tmp = df_climate.rename(
+    columns={
+        "precip_week": "Precipitation cummulative week",
+        "temp_week": "Temperature mean week",
+        "sum(precipitation_amount P1D)": "Precipitation daily",
+        "mean(air_temperature P1D)": "Temperature daily",
+    }
+)
+
+plot_time_series(
+    df_climate_tmp,
+    ["Temperature mean week", "Temperature daily"],
+    ["Precipitation daily", "Precipitation cummulative week"],
+    "./plots/climate.png",
+)
 
 
 # READ IN DATA CONTAINING GROUTING DATA AND PREPROCESS
@@ -107,6 +125,7 @@ df_grouting["Pel"] = df_grouting["Pel"].round(0).astype("int")
 df_grouting = df_grouting.set_index("date")
 
 print_df_info(df_grouting, "After all preprocessing", info=True)
+
 
 df_grouting = pd.merge(df_grouting, df_climate, on="date")
 
@@ -202,6 +221,13 @@ elif MWD_DATA == "longholes":
 ####################################################
 
 
+plot_grouting_data(
+    df,
+    "Pel",
+    ["Grouting time", "Total grout take", "Stop pressure"],
+    Path("./plots/lineplot_grouting.png"),
+)
+
 # scatter plots of variables with high correlation to target
 plot_scatter(
     df,
@@ -212,6 +238,7 @@ plot_scatter(
     (0, 250),
 )
 plot_scatter(df, "Total grout take", "Jn", Path("./plots/scatter_Jn.png"))
+
 plot_scatter(
     df,
     "Stop pressure",
@@ -229,8 +256,27 @@ plot_correlation_matrix(
     threshold_feature="Total grout take",
 )
 
+
 # plotting histograms of some chose feature values
 plot_histograms(df, hist_features, path_feature_histograms, binsize=20)
 
 # plotting barplot of some chosen categorical values
 plot_barplots(df, barplot_features, path_feature_barplots)
+
+# numeric and categorical in same plot
+plot_features(df, hist_features, barplot_features, path_features, binsize=20)
+
+plt.close()
+
+
+# parallell coordinate plot
+
+# LABEL = "Total grout take"  # "Total grout take" "Grouting time"
+# labels = df[LABEL]
+# features = df[train_features_chosen]
+# features_encoded = pd.get_dummies(features)
+
+
+# visualizer = ParallelCoordinates()
+# visualizer.fit_transform(features_encoded, labels)
+# visualizer.show(outpath="./plots/parallell_coordinate.png")

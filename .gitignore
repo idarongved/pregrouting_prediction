@@ -1,6 +1,11 @@
 plots/*.png
 data/model_ready/*
 data/raw/*
+data/temporary/*
 .vscode
 archive
 *.pyc
+src/prototype.py
+test.csv
+test.xlsx
+test.png
