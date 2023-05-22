@@ -2,7 +2,7 @@
 
 The repository containts code for preprocessing, analyzing and training machine learning models to be used for decision support in pre-grouting in hard rock.
 
-A paper was published by Rongved, Hansen and Erharhter (2023) based on the results from the code in the repo. The focus in this paper was to predict `Total grout take` in kg cement and `Grouting time` in hours.
+A paper was published by Rongved, Hansen and Erharter (2023) based on the results from the code in the repo. The focus in this paper was to predict `Total grout take` in kg cement and `Grouting time` in hours.
 
 DOI: xxx
 
@@ -73,6 +73,8 @@ python src/train_eval.py
 ## Contributors
 
 Ida Rognved: development and paper writing
+
 Georg Erharter: development and paper writing
+
 Tom F. Hansen: development and paper writing
 
