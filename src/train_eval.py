@@ -84,7 +84,7 @@ LABEL_TRANSFORM = False  # used in label transform experimentation in train-test
 ML_INVESTIGATION_PLOTS = True
 
 # plotting and analysis
-PLOTTING = True  # plot or not
+PLOTTING = False  # plot or not
 FEATURE_IMPORTANCE = True  # feature importance plot
 PREDICTION_INTERVAL = False  # examplify prediction intevals
 PLOT_THREE_MODELS = True
@@ -172,7 +172,7 @@ clf_pipeline = Pipeline(
             # LGBMRegressor(verbose=0, n_jobs=-1, random_state=MODEL_SEED),
             # RandomForestRegressor(verbose=False, n_jobs=-1, random_state=MODEL_SEED, **optimized_params),
             # HistGradientBoostingRegressor(verbose=False, random_state=MODEL_SEED),
-            # KNeighborsRegressor(n_neighbors=5, **optimized_params),
+            # KNeighborsRegressor(n_jobs=-1, **optimized_params),
             # DummyRegressor(strategy="mean"),
         ),
     ],

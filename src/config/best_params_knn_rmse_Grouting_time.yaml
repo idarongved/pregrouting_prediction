@@ -1,0 +1,5 @@
+algorithm: kd_tree
+leaf_size: 40
+n_neighbors: 17
+p: 1
+weights: uniform

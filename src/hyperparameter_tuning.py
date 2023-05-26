@@ -12,6 +12,7 @@ import yaml
 from rich.console import Console
 from sklearn.ensemble import ExtraTreesRegressor
 from sklearn.model_selection import ShuffleSplit, cross_validate
+from sklearn.neighbors import KNeighborsRegressor
 
 from src.utility import train_features_manual_domain
 
@@ -19,9 +20,10 @@ from src.utility import train_features_manual_domain
 #########################################################
 
 # Choose model, feature and label to optimize
-MODEL_TO_OPTIMIZE = "extra_trees"  # random_forest knn
+MODEL_TO_OPTIMIZE = "extra_trees"  # extra_trees knn
 TRAINING_FEATURES = train_features_manual_domain
 LABEL = "Grouting time"  # Total grout take
+OPTIMIZATION_TRIALS = 50
 
 MODEL_SEED = 0
 CV_SPLITS = 4
@@ -66,7 +68,6 @@ def suggest_hyperparameters(trial: optuna.trial.Trial, algorithm: str) -> dict:
                 ),
                 p=trial.suggest_int("p", low=1, high=2, step=1),
                 leaf_size=trial.suggest_int("leaf_size", low=5, high=50, step=5),
-                n_jobs=-1,
             )
         case _:
             raise ValueError(f"{algorithm} is not implemented. Only: knn, extra_trees")
@@ -91,9 +92,18 @@ def objective(trial: optuna.trial.Trial):
     console.print(f"\nSuggested hyperparameters: \n{pformat(trial.params)}")
 
     # model define
-    clf = ExtraTreesRegressor(
-        verbose=False, random_state=MODEL_SEED, n_jobs=-1, **suggested_hyperparams
-    )
+    match MODEL_TO_OPTIMIZE:
+        case "extra_trees":
+            clf = ExtraTreesRegressor(
+                verbose=False,
+                random_state=MODEL_SEED,
+                n_jobs=-1,
+                **suggested_hyperparams,
+            )
+        case "knn":
+            clf = KNeighborsRegressor(n_jobs=-1, **suggested_hyperparams)
+        case _:
+            raise ValueError("These models are implemented: extra_trees, KNN")
 
     # model fit
 
@@ -146,7 +156,7 @@ def optimize(direction="maximize", metric="r2"):
         sampler=sampler,
     )
 
-    study.optimize(objective, n_trials=50)
+    study.optimize(objective, n_trials=OPTIMIZATION_TRIALS)
 
     console.rule("Study statistics")
     console.print("Number of finished trials: ", len(study.trials))
