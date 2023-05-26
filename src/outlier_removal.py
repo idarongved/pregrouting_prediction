@@ -7,14 +7,14 @@ from pyod.models.iforest import IForest
 from pyod.models.lof import LOF
 from rich.console import Console
 
-from src.utility import train_features_chosen
+from src.utility import train_features_manual_domain
 
 # TODO: check out other methods in pyod. Ecod etc. https://towardsdatascience.com/how-to-perform-multivariate-outlier-detection-in-python-pyod-for-machine-learning-b0a9c557a21c
 
 # Constants
 #####################################################
 LABEL = "Total grout take"  # "Total grout take" "Grouting time"
-TRAINING_FEATURES = train_features_chosen
+TRAINING_FEATURES = train_features_manual_domain
 # Set a confidence threshold before removing an outlier
 THRESHOLD = 0.8
 OUTLIER_REMOVAL_METHOD = "hard_values"  # lof, hard_values, isolation_forest
@@ -61,7 +61,9 @@ print("These samples are outliers: ", outlier_indices_lof)
 num_outliers = len(outliers_X_probs)
 print(f"The number of outliers with LOF: {num_outliers}")
 print(f"Percentage of outliers: {num_outliers / len(features):.4f}")
-console.print("These are outlier samples using LOF: \n", features_labels.iloc[outlier_indices_lof])
+console.print(
+    "These are outlier samples using LOF: \n", features_labels.iloc[outlier_indices_lof]
+)
 
 
 # WITH ISOLATION FOREST

@@ -44,11 +44,11 @@ from sklearn.preprocessing import (
 from sklearn.tree import DecisionTreeRegressor
 
 from src.utility import (
-    all_features,
-    auto_features,
+    all_relevant_features,
+    auto_features_take,
+    auto_features_time,
     encode_categorical_features,
-    train_features_chosen,
-    train_features_max,
+    train_features_manual_domain,
     train_features_no_previous,
     train_features_small,
 )
@@ -56,15 +56,20 @@ from src.utility import (
 # CONSTANTS
 ##########################################
 
+# MOST IMPORTANT CONSTANTS TO CHOOSE: LABEL, TRAINING_FEATURES, MODEL_TYPE_PARAMS
+# TO SPEED THINGS UP: TURN OFF PLOTTING
+
 # data
-LABEL = "Total grout take"  # "Total grout take" "Grouting time"
-TRAINING_FEATURES = (
-    train_features_chosen  # train_features_chosen auto_features all_features
-)
+LABEL = "Grouting time"  # "Total grout take" "Grouting time"
+# choose between: train_features_manual_domain, all_relevant_features, auto_features_take
+# auto_features_time, train_features_no_previous, train_features_small
+TRAINING_FEATURES = auto_features_time
 MWD_DATA = "longholes"  # longholes, blastholes - choose which MWD-dataset to use
 OUTLIER_REMOVAL = False
 
 # model - general
+MODEL_TYPE_PARAMS = "extra_trees"  # random_forest extra_trees
+# NOTE: In addition you have to uncomment the right model when the model is defined
 TEST_SIZE = 0.2
 SPLITTING_SEED = 0
 MODEL_SEED = 0
@@ -147,7 +152,7 @@ features_encoded = pd.get_dummies(features)
 # get best params from hyperparameter optimization
 path_params = Path(
     "./src/config",
-    f"best_params_extra_trees_{OPTIMIZED_METRIC}_{('_').join(LABEL.split(' '))}.yaml",
+    f"best_params_{MODEL_TYPE_PARAMS}_{OPTIMIZED_METRIC}_{label_short}.yaml",
 )
 # Load the YAML file into a dictionary
 with open(path_params, "r") as file:
@@ -165,9 +170,9 @@ clf_pipeline = Pipeline(
             # Ridge(random_state=MODEL_SEED),
             # LinearRegression(),
             # LGBMRegressor(verbose=0, n_jobs=-1, random_state=MODEL_SEED),
-            # RandomForestRegressor(verbose=False, n_jobs=-1, random_state=MODEL_SEED),
+            # RandomForestRegressor(verbose=False, n_jobs=-1, random_state=MODEL_SEED, **optimized_params),
             # HistGradientBoostingRegressor(verbose=False, random_state=MODEL_SEED),
-            # KNeighborsRegressor(n_neighbors=5),
+            # KNeighborsRegressor(n_neighbors=5, **optimized_params),
             # DummyRegressor(strategy="mean"),
         ),
     ],

@@ -8,7 +8,7 @@ from rich import print as pprint
 from sklearn.preprocessing import OneHotEncoder
 
 # from auto feature selection with featurewiz
-auto_features = [
+auto_features_take = [
     "Prev. grout take",
     "Number of holes",
     "RotaPressNormStandardDeviation",
@@ -34,51 +34,32 @@ auto_features = [
     "Cement type",
 ]
 
-MWD = [
-    "PegStart",
-    "PenetrNormMean",
-    "PenetrNormVariance",
-    "PenetrNormStandardDeviation",
-    "PenetrNormSkewness",
-    "PenetrNormKurtosis",
-    "PenetrRMSMean",
-    "PenetrRMSVariance",
-    "PenetrRMSStandardDeviation",
-    "PenetrRMSSkewness",
-    "PenetrRMSKurtosis",
-    "RotaPressNormMean",
-    "RotaPressNormVariance",
-    "RotaPressNormStandardDeviation",
-    "RotaPressNormSkewness",
-    "RotaPressNormKurtosis",
-    "RotaPressRMSMean",
-    "RotaPressRMSVariance",
-    "RotaPressRMSStandardDeviation",
-    "RotaPressRMSSkewness",
-    "RotaPressRMSKurtosis",
-    "FeedPressNormMean",
-    "FeedPressNormVariance",
-    "FeedPressNormStandardDeviation",
-    "FeedPressNormSkewness",
-    "FeedPressNormKurtosis",
-    "HammerPressNormMean",
-    "HammerPressNormVariance",
-    "HammerPressNormStandardDeviation",
-    "HammerPressNormSkewness",
-    "HammerPressNormKurtosis",
-    "WaterFlowNormMean",
-    "WaterFlowNormVariance",
-    "WaterFlowNormStandardDeviation",
-    "WaterFlowNormSkewness",
-    "WaterFlowNormKurtosis",
+auto_features_time = [
+    "Prev. grouting time",
+    "Number of holes",
+    "precip_week",
+    "TerrainHeight",
     "WaterFlowRMSMean",
-    "WaterFlowRMSVariance",
-    "WaterFlowRMSStandardDeviation",
-    "WaterFlowRMSSkewness",
-    "WaterFlowRMSKurtosis",
+    "WaterFlowNormMean",
+    "temp_week",
+    "RQD",
+    "WaterFlowNormSkewness",
+    "PenetrNormSkewness",
+    "FeedPressNormMean",
+    "PenetrRMSMean",
+    "RotaPressNormMean",
+    "Control engineer grouting",
+    "HammerPressNormVariance",
+    "HammerPressNormMean",
+    "Grouting length",
+    "Rocktype",
+    "Mapping geologist",
+    "Q-class",
+    "Cement type",
 ]
 
-all_features = [
+
+all_relevant_features = [
     "temperature",
     "precipitation",
     "temp_week",
@@ -91,8 +72,8 @@ all_features = [
     "Drilling inclination",
     "Number of holes",
     "Drilling meters",
-    # "Grouting time",
     "Cement type",
+    # "Grouting time",
     # "Total grout take",
     # "Stop pressure",
     # "PegStart",
@@ -157,8 +138,18 @@ all_features = [
     "Prev. stop pressure",
 ]
 
-train_features_max = [
+all_dataset_variables = [
+    "Date mapping",
+    "JnMult",
+    "Grouting time",
     "Total grout take",
+    "Stop pressure",
+    "PegStart",
+    "PegEnd",
+    "Date pregrouting",
+    "Pel",
+    "Total grout take",
+    "Grouting time",
     "temperature",
     "precipitation",
     "temp_week",
@@ -228,7 +219,7 @@ train_features_max = [
     "Prev. stop pressure",
 ]
 
-train_features_chosen = [
+train_features_manual_domain = [
     # "Control engineer grouting",
     # "Date pregrouting",
     # "temperature",
@@ -269,31 +260,71 @@ train_features_chosen = [
 
 train_features_small = [
     "Prev. grout take",
+    "Prev. grouting time",
     "TerrainHeight",
-    "HammerPressNormVariance",
 ]
 
-train_features_no_previous = [
-    # "Control engineer grouting",
-    # "Date pregrouting",
+train_features_no_previous = [ #train_feature_domain without previous
+    "precip_week",
     "Grouting length",
-    "Distance last station",
     "Number of holes",
     "Drilling meters",
     "Cement type",
-    "PenetrNormMean",
     "RotaPressNormMean",
     "HammerPressNormMean",
     "HammerPressNormVariance",
     "HammerPressNormSkewness",
+    "PenetrNormMean",
     "Rocktype",
     "RQD",
-    "Jr",
-    "Jw",
     "Jn",
     "Ja",
     "SRF",
     "TerrainHeight",
+]
+
+MWD = [
+    "PegStart",
+    "PenetrNormMean",
+    "PenetrNormVariance",
+    "PenetrNormStandardDeviation",
+    "PenetrNormSkewness",
+    "PenetrNormKurtosis",
+    "PenetrRMSMean",
+    "PenetrRMSVariance",
+    "PenetrRMSStandardDeviation",
+    "PenetrRMSSkewness",
+    "PenetrRMSKurtosis",
+    "RotaPressNormMean",
+    "RotaPressNormVariance",
+    "RotaPressNormStandardDeviation",
+    "RotaPressNormSkewness",
+    "RotaPressNormKurtosis",
+    "RotaPressRMSMean",
+    "RotaPressRMSVariance",
+    "RotaPressRMSStandardDeviation",
+    "RotaPressRMSSkewness",
+    "RotaPressRMSKurtosis",
+    "FeedPressNormMean",
+    "FeedPressNormVariance",
+    "FeedPressNormStandardDeviation",
+    "FeedPressNormSkewness",
+    "FeedPressNormKurtosis",
+    "HammerPressNormMean",
+    "HammerPressNormVariance",
+    "HammerPressNormStandardDeviation",
+    "HammerPressNormSkewness",
+    "HammerPressNormKurtosis",
+    "WaterFlowNormMean",
+    "WaterFlowNormVariance",
+    "WaterFlowNormStandardDeviation",
+    "WaterFlowNormSkewness",
+    "WaterFlowNormKurtosis",
+    "WaterFlowRMSMean",
+    "WaterFlowRMSVariance",
+    "WaterFlowRMSStandardDeviation",
+    "WaterFlowRMSSkewness",
+    "WaterFlowRMSKurtosis",
 ]
 
 hist_features = [

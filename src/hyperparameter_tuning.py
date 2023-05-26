@@ -5,23 +5,29 @@ Best parameters are saved to a yaml-file which is loaded in final train_eval
 
 from pathlib import Path
 from pprint import pformat
-import yaml
 
 import optuna
 import pandas as pd
+import yaml
 from rich.console import Console
 from sklearn.ensemble import ExtraTreesRegressor
 from sklearn.model_selection import ShuffleSplit, cross_validate
 
-from src.utility import train_features_chosen
+from src.utility import train_features_manual_domain
+
+# CONSTANTS
+#########################################################
+
+# Choose model, feature and label to optimize
+MODEL_TO_OPTIMIZE = "extra_trees"  # random_forest knn
+TRAINING_FEATURES = train_features_manual_domain
+LABEL = "Grouting time"  # Total grout take
 
 MODEL_SEED = 0
-TRAINING_FEATURES = train_features_chosen
-LABEL = "Grouting time"  # Total grout take
 CV_SPLITS = 4
 SPLITTING_SEED = 0
 
-# get all default params from some algorithms using a prebuilt library, hydra-zen?
+# TODO: get all default params from some algorithms using a prebuilt library, hydra-zen?
 
 
 def suggest_hyperparameters(trial: optuna.trial.Trial, algorithm: str) -> dict:
@@ -80,7 +86,7 @@ def objective(trial: optuna.trial.Trial):
     features_encoded = pd.get_dummies(features)
 
     # define params
-    suggested_hyperparams = suggest_hyperparameters(trial, "extra_trees")
+    suggested_hyperparams = suggest_hyperparameters(trial, MODEL_TO_OPTIMIZE)
 
     console.print(f"\nSuggested hyperparameters: \n{pformat(trial.params)}")
 
@@ -130,7 +136,7 @@ def objective(trial: optuna.trial.Trial):
     return rmse.mean()
 
 
-def optimize(direction = "maximize", metric="r2"):
+def optimize(direction="maximize", metric="r2"):
     console = Console()
 
     sampler = optuna.samplers.TPESampler()
@@ -155,10 +161,14 @@ def optimize(direction = "maximize", metric="r2"):
     for key, value in trial.params.items():
         console.print(f"{key}: {value}")
 
-    path_params = Path("./src/config", f"best_params_extra_trees_{metric}_time.yaml")
+    label_short = ("_").join(LABEL.split(" "))
+
+    path_params = Path(
+        "./src/config", f"best_params_{MODEL_TO_OPTIMIZE}_{metric}_{label_short}.yaml"
+    )
     with open(path_params, "w") as file:
         yaml.dump(trial.params, file)
 
 
 if __name__ == "__main__":
-    optimize(direction="maximize",metric="rmse")
+    optimize(direction="maximize", metric="rmse")

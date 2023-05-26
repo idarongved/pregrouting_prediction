@@ -5,6 +5,8 @@ from pathlib import Path
 # from yellowbrick.features import ParallelCoordinates
 import matplotlib.pyplot as plt
 import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+
 from plotting_lib import (
     plot_barplots,
     plot_correlation_matrix,
@@ -13,8 +15,6 @@ from plotting_lib import (
     plot_scatter,
     plot_time_series,
 )
-from sklearn.preprocessing import LabelEncoder
-
 from src.plotting_lib import plot_grouting_data
 from src.utility import (
     align_geology_for_longholes,
@@ -24,7 +24,7 @@ from src.utility import (
     print_df_info,
     process_geology_blastholes_csv,
     process_geology_longholes,
-    train_features_chosen,
+    train_features_manual_domain,
 )
 
 # CONSTANTS
