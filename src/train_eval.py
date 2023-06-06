@@ -6,7 +6,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import yaml
+import yaml  # type: ignore
 from lightgbm import LGBMRegressor
 from plotting_lib import (
     make_predictions,
@@ -17,13 +17,20 @@ from plotting_lib import (
 )
 from rich import print as pprint
 from rich.console import Console
-from sklearn.compose import ColumnTransformer, TransformedTargetRegressor
+from rich.traceback import install
+from sklearn.compose import (
+    ColumnTransformer,
+    TransformedTargetRegressor,
+    make_column_selector,
+    make_column_transformer,
+)
 from sklearn.dummy import DummyRegressor
 from sklearn.ensemble import (
     ExtraTreesRegressor,
     HistGradientBoostingRegressor,
     RandomForestRegressor,
 )
+from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LinearRegression, Ridge
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import (
@@ -33,7 +40,7 @@ from sklearn.model_selection import (
     train_test_split,
 )
 from sklearn.neighbors import KNeighborsRegressor
-from sklearn.pipeline import Pipeline
+from sklearn.pipeline import Pipeline, make_pipeline
 from sklearn.preprocessing import (
     MinMaxScaler,
     OneHotEncoder,
@@ -53,17 +60,26 @@ from src.utility import (
     train_features_small,
 )
 
+install()  # for better traceback
+
 # CONSTANTS
 ##########################################
+
+# Some todos for an expanded project
+# TODO: move all functionality into functions and control config with hydra instead.
+# That will be quicker and easier to work with in terminal + less errorprone
+# TODO: check/parse hydra config with pydantic
+# TODO: Log experiments (with figure artifacts) in mlflow for better scientific exp.
+# With these changes the repo will be ready for handling bigger grouting datasets.
 
 # MOST IMPORTANT CONSTANTS TO CHOOSE: LABEL, TRAINING_FEATURES, MODEL_TYPE_PARAMS
 # TO SPEED THINGS UP: TURN OFF PLOTTING
 
 # data
-LABEL = "Grouting time"  # "Total grout take" "Grouting time"
+LABEL = "Total grout take"  # "Total grout take" "Grouting time"
 # choose between: train_features_manual_domain, all_relevant_features, auto_features_take
 # auto_features_time, train_features_no_previous, train_features_small
-TRAINING_FEATURES = auto_features_time
+TRAINING_FEATURES = train_features_manual_domain
 MWD_DATA = "longholes"  # longholes, blastholes - choose which MWD-dataset to use
 OUTLIER_REMOVAL = False
 
@@ -81,10 +97,10 @@ RUN_CROSS_VALIDATION = True
 # model - investigation
 RUN_TRAIN_TEST_SPLIT = False  # run train test split instead of cross validation
 LABEL_TRANSFORM = False  # used in label transform experimentation in train-test-split
-ML_INVESTIGATION_PLOTS = True
+ML_INVESTIGATION_PLOTS = False
 
 # plotting and analysis
-PLOTTING = False  # plot or not
+PLOTTING = True  # plot or not
 FEATURE_IMPORTANCE = True  # feature importance plot
 PREDICTION_INTERVAL = False  # examplify prediction intevals
 PLOT_THREE_MODELS = True
@@ -139,15 +155,49 @@ df = df.sample(
 features = df[TRAINING_FEATURES]
 labels = df[LABEL]
 
-# TODO: try to separate the label in two and classify binary
+# TODO: move the preprocessing below to preprocessing.py
+# mask out values with too low values, to avoid errors on not finding feature in testset
+mask = features["Rocktype"].isin(["Breksje", "Gangbergart", "Granitt", "Diabas"])
+features.loc[mask, "Rocktype"] = np.nan
 
-# One-hot-encoding of categorical variables
-features_encoded = pd.get_dummies(features)
-# features_encoded = encode_categorical_features(features)  # alternative
+mask = features["Control engineer grouting"].isin(["Engineer_6", "Engineer_7"])
+features.loc[mask, "Control engineer grouting"] = np.nan
+
+mask = features["Mapping geologist"].isin(["Engineer_6"])
+features.loc[mask, "Mapping geologist"] = np.nan
+
+name_mapping = {"Industrisement": "industrycement", "Mikrosement": "microcement"}
+features.loc[:, "Cement type"] = features.loc[:, "Cement type"].replace(name_mapping)
+
+# TODO: try to separate the label in two and classify binary
 
 
 # DEFINE THE MODEL PIPELINE
 ########################################################
+
+# systematic way of transforming features
+numeric_feature_names = df.select_dtypes(include=np.number).columns
+numeric_cols = make_column_selector(dtype_include=np.number)
+categorical_cols = make_column_selector(dtype_exclude=np.number)
+
+numeric_pipe = make_pipeline(
+    # QuantileTransformer(n_quantiles=int(features.shape[0] * 0.7)),
+    StandardScaler()
+)
+categorical_pipe = make_pipeline(
+    SimpleImputer(strategy="most_frequent"),
+    OneHotEncoder(),
+)
+
+transformers = ColumnTransformer(
+    transformers=[
+        ("numeric", numeric_pipe, numeric_cols),
+        ("categorical", categorical_pipe, categorical_cols),
+    ]
+)
+
+features_encoded = transformers.fit_transform(features)
+
 
 # get best params from hyperparameter optimization
 path_params = Path(
@@ -161,7 +211,7 @@ with open(path_params, "r") as file:
 # define pipeline
 clf_pipeline = Pipeline(
     steps=[
-        ("scaler", StandardScaler()),
+        ("preprocess", transformers),
         (
             "classifier",
             ExtraTreesRegressor(
@@ -170,7 +220,9 @@ clf_pipeline = Pipeline(
             # Ridge(random_state=MODEL_SEED),
             # LinearRegression(),
             # LGBMRegressor(verbose=0, n_jobs=-1, random_state=MODEL_SEED),
-            # RandomForestRegressor(verbose=False, n_jobs=-1, random_state=MODEL_SEED, **optimized_params),
+            # RandomForestRegressor(
+                # verbose=False, n_jobs=-1, random_state=MODEL_SEED, **optimized_params
+                # ),
             # HistGradientBoostingRegressor(verbose=False, random_state=MODEL_SEED),
             # KNeighborsRegressor(n_jobs=-1, **optimized_params),
             # DummyRegressor(strategy="mean"),
@@ -185,7 +237,7 @@ clf_pipeline = Pipeline(
 if RUN_TRAIN_TEST_SPLIT:
     # # split data
     x_train, x_val, y_train, y_val = train_test_split(
-        features_encoded,
+        features,
         labels,
         test_size=TEST_SIZE,
         shuffle=True,
@@ -218,7 +270,8 @@ if RUN_TRAIN_TEST_SPLIT:
         visualizer.show(outpath="./plots/residualplot.png")
         plt.close()
 
-        # prediction error plot - show identity line vs fitted line. Show potential for transformation
+        # prediction error plot - show identity line vs fitted line. Show potential for
+        # transformation
         visualizer = PredictionError(model)
         visualizer.fit(x_train, y_train)  # Fit the training data to the visualizer
         visualizer.score(x_val, y_val)  # Evaluate the model on the test data
@@ -273,7 +326,7 @@ if RUN_CROSS_VALIDATION:
     )
     scores = cross_validate(
         clf_pipeline,
-        features_encoded,
+        features,
         labels,
         cv=splitter,
         n_jobs=-1,
@@ -302,9 +355,7 @@ if RUN_CROSS_VALIDATION:
 
 if PLOTTING:
     # plot a distribution plot of predicted and true values
-    y_predicted = cross_val_predict(
-        clf_pipeline, features_encoded, labels, cv=CV_SPLITS
-    )
+    y_predicted = cross_val_predict(clf_pipeline, features, labels, cv=CV_SPLITS)
     # binary_coloring = features_encoded["Cement type_Industrisement"]
     binary_coloring = features["Cement type"]
 
@@ -351,15 +402,13 @@ if PLOTTING:
             for clf in classifiers:
                 pipeline = Pipeline(
                     steps=[
-                        ("scaler", StandardScaler()),
+                        ("preprocess", transformers),
                         ("classifier", clf),
                     ],
                     verbose=False,
                 )
                 pipelines.append(pipeline)
-            dfs, model_names = make_predictions(
-                pipelines, features, features_encoded, labels, CV_SPLITS
-            )
+            dfs, model_names = make_predictions(pipelines, features, labels, CV_SPLITS)
 
             plot_pred_error_models(
                 dfs, model_names, LABEL, path_3_models, tick_density=20000
@@ -399,15 +448,13 @@ if PLOTTING:
             for clf in classifiers:
                 pipeline = Pipeline(
                     steps=[
-                        ("scaler", StandardScaler()),
+                        ("preprocess", transformers),
                         ("classifier", clf),
                     ],
                     verbose=False,
                 )
                 pipelines.append(pipeline)
-            dfs, model_names = make_predictions(
-                pipelines, features, features_encoded, labels, CV_SPLITS
-            )
+            dfs, model_names = make_predictions(pipelines, features, labels, CV_SPLITS)
 
             plot_pred_error_models(
                 dfs,
@@ -421,9 +468,12 @@ if PLOTTING:
     if FEATURE_IMPORTANCE:
         # plot feature importance
         console.print("[green]Plotting feature importance")
-        feature_names = features_encoded.columns.tolist()
+
+        # One-hot-encoding of categorical variables used only in feature importance plot
+        feature_names = pd.get_dummies(features).columns.tolist()
+
         plot_feature_importances(
-            path_feature_importance, trained_clf, feature_names, num_bars=10
+            path_feature_importance, trained_clf, feature_names, num_bars=6
         )
 
 # CALCULATING PREDICTION INTERVALS

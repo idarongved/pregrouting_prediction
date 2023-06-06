@@ -1,6 +1,6 @@
 plots/*.png
-data/model_ready/*
-data/raw/*
+data/model_ready/*.xlsx
+data/raw/*.csv
 data/temporary/*
 .vscode
 archive

@@ -56,7 +56,8 @@ def plot_histograms(
 
 def plot_barplots(df: pd.DataFrame, features: list[str], savepath: Path) -> None:
     """
-    Plots bar plots for the specified categorical features in a DataFrame and saves the plot to a file.
+    Plots bar plots for the specified categorical features in a DataFrame and saves the
+    plot to a file.
 
     Parameters:
     - df (pd.DataFrame): The input DataFrame.
@@ -272,13 +273,16 @@ def plot_feature_importances(
     num_bars: int = 8,
     figure_width: float = 3.15,
 ) -> None:
-    """Plotting feature importance for tree based methods."""
+    """Plotting feature importance for tree based methods.
+
+    Choose the num_bars features with heighest importance.
+    """
     num_bars = len(feature_names) if len(feature_names) < num_bars else num_bars
     importances = model.feature_importances_
     std = np.std([tree.feature_importances_ for tree in model.estimators_], axis=0)[
         0:num_bars
     ]
-    fig, ax = plt.subplots(figsize=(2 * figure_width, 1 * figure_width))
+    fig, ax = plt.subplots(figsize=(figure_width, 1.5 * figure_width))
     forest_importances = pd.Series(importances, index=feature_names).sort_values(
         ascending=False
     )
@@ -286,9 +290,9 @@ def plot_feature_importances(
     forest_importances.plot(kind="bar", yerr=std, ax=ax, color="Gray")  # 8b9dc3")
     ax.set_xticklabels(
         forest_importances.index,
-        rotation=45,
-        rotation_mode="anchor",
-        verticalalignment="top",
+        rotation=90,
+        # rotation_mode="anchor",
+        # verticalalignment="top",
     )
     ax.set_title("Feature importances using MDI")
     ax.set_ylabel("Mean decrease in impurity (MDI)")
@@ -316,7 +320,7 @@ def plot_pred_error(
         y="Prediction",
         hue="Cement type",
         ax=ax,
-        palette={"Industrisement": "gray", "Mikrosement": "#aa3a3d"},
+        palette={"industrycement": "gray", "microcement": "#aa3a3d"},
     )
     sns.lineplot(
         x=[xlim[0], xlim[1]],
@@ -349,7 +353,6 @@ def plot_pred_error(
 def make_predictions(
     clf_pipelines: List[Pipeline],
     features: pd.DataFrame,
-    features_encoded: pd.DataFrame,
     labels: pd.Series,
     cv_splits: int,
 ) -> Tuple[List[pd.DataFrame], List[str]]:
@@ -357,7 +360,7 @@ def make_predictions(
     model_names = []
 
     for clf in clf_pipelines:
-        y_predicted = cross_val_predict(clf, features_encoded, labels, cv=cv_splits)
+        y_predicted = cross_val_predict(clf, features, labels, cv=cv_splits)
 
         binary_coloring = features["Cement type"]
 
@@ -401,7 +404,7 @@ def plot_pred_error_models(
             y="Prediction",
             hue="Cement type",
             ax=ax,
-            palette={"Industrisement": "gray", "Mikrosement": "#aa3a3d"},
+            palette={"industrycement": "gray", "microcement": "#aa3a3d"},
         )
         sns.lineplot(
             x=[xlim[0], xlim[1]],

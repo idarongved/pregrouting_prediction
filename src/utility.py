@@ -220,7 +220,8 @@ all_dataset_variables = [
 ]
 
 train_features_manual_domain = [
-    # "Control engineer grouting",
+    "Control engineer grouting",
+    "Mapping geologist",
     # "Date pregrouting",
     # "temperature",
     # "precipitation",
@@ -523,7 +524,7 @@ def process_geology_longholes(inputpath: Path) -> pd.DataFrame:
 def align_geology_for_longholes(
     df_geology: pd.DataFrame, df_grouting: pd.DataFrame, df_total: pd.DataFrame
 ) -> pd.DataFrame:
-    # 1. Merge df_geology with df_grouting[["Pel","Skjermlengde [m]"]] = df_condensed_geology
+    # 1. Merge df_geology with df_grouting[["Pel","Skjermlengde [m]"]]
     df = pd.merge(
         df_geology,
         df_grouting[["Pel", "Skjermlengde [m]"]],
