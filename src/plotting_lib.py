@@ -12,6 +12,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import PredictionErrorDisplay, mean_squared_error, r2_score
 from sklearn.model_selection import cross_val_predict
 from sklearn.pipeline import Pipeline
+from src.utility import feature_units
 
 plt.style.use("./src/config/figures_styles.mplstyle")
 
@@ -121,9 +122,13 @@ def plot_features(
         axs[i].hist(
             df[feature], bins=binsize, alpha=0.5, edgecolor="black", color="lightgrey"
         )
-        axs[i].set_title(feature, fontsize=15)
+        axs[i].set_xlabel(f"{feature} {feature_units[feature]}", fontsize=15)
         axs[i].tick_params(labelsize=15)
         axs[i].grid(True, axis="y", alpha=0.5)
+
+        # Add a common y-label to the left of each row
+        if i % ncols == 0:
+            axs[i].set_ylabel("Frequency", fontsize=15)
 
     # Plotting categorical features
     for i, feature in enumerate(cat_features, start=len(num_features)):
@@ -135,6 +140,9 @@ def plot_features(
         axs[i].spines["right"].set_visible(False)
         axs[i].spines["top"].set_visible(False)
         axs[i].grid(False)
+
+        if i % ncols == 0:
+            axs[i].set_ylabel("Frequency", fontsize=15)
 
     for ax in axs[total_features:]:
         ax.set_visible(False)
@@ -487,11 +495,14 @@ def plot_grouting_data(
         figsize=(2 * figure_width, figure_width), nrows=3, ncols=1, sharex=True
     )
 
-    for ax, feature in zip(axes, y_names):
+    units = ['[h]', '[kg]', '[bar]']
+
+    for ax, feature, unit in zip(axes, y_names, units):
         ax.plot(data[x_name], data[feature], color="Gray")
         ax.scatter(data[x_name], data[feature], color="#aa3a3d", s=1.5)
         # ax.stem(data[x_name], data[feature])
-        ax.set_ylabel(feature, rotation=45)
+        ax.set_ylabel(f"{feature} {unit}", fontsize=6)
+        ax.yaxis.set_label_coords(-0.1, 0.5)  # Adjust the x-position of y-label
         ax.grid(visible=True)
 
     plt.xlabel("Profile number")

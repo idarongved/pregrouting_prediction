@@ -257,11 +257,11 @@ plot_correlation_matrix(
 )
 
 
-# plotting histograms of some chose feature values
-plot_histograms(df, hist_features, path_feature_histograms, binsize=20)
+# # plotting histograms of some chose feature values
+# plot_histograms(df, hist_features, path_feature_histograms, binsize=20)
 
-# plotting barplot of some chosen categorical values
-plot_barplots(df, barplot_features, path_feature_barplots)
+# # plotting barplot of some chosen categorical values
+# plot_barplots(df, barplot_features, path_feature_barplots)
 
 # numeric and categorical in same plot
 plot_features(df, hist_features, barplot_features, path_features, binsize=20)

@@ -265,7 +265,7 @@ train_features_small = [
     "TerrainHeight",
 ]
 
-train_features_no_previous = [ #train_feature_domain without previous
+train_features_no_previous = [  # train_feature_domain without previous
     "precip_week",
     "Grouting length",
     "Number of holes",
@@ -354,6 +354,22 @@ barplot_features = [
     "Rocktype",
     # "Mapping geologist",
 ]
+
+feature_units = {
+    "Grouting length":"[m]",
+    "Number of holes":"",
+    "Drilling meters":"[m]",
+    "Grouting time":'[h]',
+    "Total grout take":'[kg]',
+    "Stop pressure":'[bar]',
+    "Q": 'value',
+    "TerrainHeight":'[m]',
+    "RotaPressNormMean":'[bar/min]',
+    "HammerPressNormMean":'[bar/min]',
+    "PenetrNormMean":'[m/min]',
+    "RQD":'[%]',
+}
+
 
 correlation_features = [
     "Grouting time",
